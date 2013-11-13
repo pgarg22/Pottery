@@ -1,35 +1,47 @@
-module VericalRhythm where
+module VerticalRhythm where
 import Clay
-
 
 data Config a = Co a 
 
 
-newtype ST s a = ST (s -> (s,a))
+newtype State s a = State (s -> (a,s))
 
+type CSSState = (Integer,Integer)
 
 instance Monad Config where
-  return x = Co x 16 
+  return x = Co x 
   Co a >>= g = g a
 
-establish_baseline :: Integer-> Config Css
-establish_baseline base_font_size = do
-		       let k=rhythm 1.0 base_font_size 0
-		       let p= (realToFrac (2*100)) / (realToFrac 16)
-		       return (do 
+instance Monad (State s) where
+
+  return x = State ( \st -> (x, st) )
+  mv >>= g = State ( \st -> 
+                 let (y, st') = runState mv st
+                 in runState (g y) st' )
+
+
+
+runState :: State s a -> s -> (a, s)
+runState (State f) init_st = f init_st
+
+establish_baseline :: State CSSState Css
+establish_baseline = State(\st ->
+				let (x , y) = st 
+				    k=rhythm 1.0 x 0
+				    p= (realToFrac (2*100)) / (realToFrac 16)
+				    c= ( do 
 			     
-		 	          html?
-				       fontSize ( pct p)      
-				  html ?
-				    do
-				       fontSize      (px base_font_size)
-				       lineHeight (em k))
+		 	          		html?
+				       			fontSize ( pct p)      
+				  		html ?
+				    			do
+				       				fontSize      (px x)
+				       				lineHeight (em k))
 
-
-
-
-
+		       		in (c, st))
 rhythm:: Double->Integer->Integer->Double
 rhythm lines font_size offset  =do 	let h = 2
 					((lines*realToFrac((h - offset))) / realToFrac (font_size))
+
+
 
