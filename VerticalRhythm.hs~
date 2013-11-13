@@ -12,19 +12,18 @@ import Control.Monad.State
 
 -- | Type CSSState used to keep track of the base_font_size and the base_line_height
 type CSSState = (Integer,Integer)
-type MyStateMonad  = State CSSState 
 
 
 -- |  Establishes the baseline for the given CSSState
-establish_baseline :: MyStateMonad Css
-establish_baseline = state (\st ->
-				let (x , y) = st 
-				    c= baseline x y
-				in (c, st))
+establish_baseline :: State CSSState Css
+establish_baseline = 
+		do (x,y) <-get
+		   let c= baseline x y
+		   return c
 
 
 -- | returns baseline Css
-baseline::Integer->Integer->Css
+baseline :: Integer -> Integer -> Css
 baseline x y = do 
 	--setting base Css
 	-- x is the base_font_size and y is the base_line_height 		     
@@ -39,7 +38,7 @@ baseline x y = do
 
 
 --  | Calculates rhythm units
-rhythm:: Double -> Integer-> Integer -> Integer -> Double
+rhythm :: Double -> Integer-> Integer -> Integer -> Double
 rhythm l f h o  = do ((l*realToFrac((h - o))) / realToFrac (f))
 --l is the number of lines, f is the base_font_size, h is the base_line_height and o is the offset
 
