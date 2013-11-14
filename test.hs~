@@ -6,5 +6,6 @@ import Data.Default
 main =  putCss k
      
   where
-    k= establish_baseline def
+    t=def
+    k= establish_baseline t
 
