@@ -20,7 +20,7 @@ instance Default CSSState where def = (Base 16 24 16 2 False)
 -- |  Establishes the baseline for the given CSSState
 
 establish_baseline :: CSSState -> Css
-establish_baseline (Base x y z m r) = baseline x y z
+establish_baseline (Base f h b m r) = baseline f h b
 
 
 -- | returns baseline Css
@@ -28,6 +28,8 @@ baseline :: Integer -> Integer ->Integer -> Css
 baseline x y z= do 
 	--setting base Css
 	-- x is the base_font_size and y is the base_line_height and z is the browser_default_font_size     
+	-- IE 6 refuses to resize fonts set in pixels and it weirdly resizes fonts 
+	--whose root is set in ems. So we set the root font size in percentages of the default font size.
 	html?
 	   fontSize ( pct p)      
 	html ? do
@@ -44,16 +46,23 @@ rhythm l f h o  = do ((l*realToFrac((h - o))) / realToFrac (f))
 --l is the number of lines, f is the base_font_size, h is the base_line_height and o is the offset
 
 
--- | Changes the font size of an element maintaining vertical rhythm
+{- 
+
+   Adjust a block to have a different font size and line height to maintain the rhythm. 
+   l specifies how many multiples of the baseline rhythm each line of this font should use up. It does not have to be an integer, 
+   but it defaults to the smallest integer that is large enough to fit the font.
+   Use $from-size to adjust from a font-size other than the base font-size.
+
+-}
 to_font_size:: CSSState -> Integer -> Maybe Double -> Maybe Integer -> Css
-to_font_size (Base x y z m r) t l f = font_size t l1 f1 y
+to_font_size (Base f h z m r) t l f2 = font_size t l1 f1 h
 				  where
 				  l1 = case l of
 					 Just k -> k
-					 Nothing -> lines_for_font_size t y m r
-				  f1 = case f of
+					 Nothing -> lines_for_font_size t h m r
+				  f1 = case f2 of
 					 Just k-> k
-					 Nothing -> x 
+					 Nothing -> f 
 				 
 
 
@@ -71,7 +80,7 @@ font_size t l f h = do
 
 
 
--- | Calculates the lines for the fontsize if not provided by the user
+-- | Calculate the minimum multiple of rhythm units needed to contain the font-size.
 lines_for_font_size:: Integer-> Integer -> Integer -> Bool -> Double 
 lines_for_font_size f h m r = 
 		-- f is the to_fontsize, h is the base line height, m is the minimum line padding and r is the round_to_nearest_half_line
@@ -86,6 +95,36 @@ lines_for_font_size f h m r =
 		      then realToFrac(ceiling((realToFrac (f*2) / realToFrac (h))/2)) 
 		      else realToFrac(ceiling(realToFrac (f) / realToFrac(h)))
 
-			
 
+-- | Apply leading whitespace. The property can be margin or padding. By default property is margin
+leader:: CSSState -> Maybe Double-> Maybe Integer -> Maybe String -> Css			
+leader s l f2 property | property == (Just "padding") = padding_leader s l f2
+		       | otherwise                    = margin_leader s l f2 
+
+
+-- |Apply leading whitespace as padding.
+padding_leader:: CSSState -> Maybe Double-> Maybe Integer -> Css
+padding_leader (Base f h b m r) l  f2 =  paddingTop (em r)
+					  where
+					  l1 = case l of
+					 	 Just k -> k
+					         Nothing -> 1.0
+					  f3 = case f2 of
+						 Just k -> k
+						 Nothing -> f
+					  r= rhythm l1 f3 h 0
+
+
+
+-- |Apply leading whitespace as margin.
+margin_leader:: CSSState -> Maybe Double-> Maybe Integer -> Css
+margin_leader (Base f h b m r ) l  f2 =  marginTop (em r)
+					  where
+					  l1 = case l of
+					 	 Just k -> k
+					         Nothing -> 1.0
+					  f3 = case f2 of
+						 Just k -> k
+						 Nothing -> f
+					  r= rhythm l1 f3 h 0
 
