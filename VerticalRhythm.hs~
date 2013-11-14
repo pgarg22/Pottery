@@ -9,22 +9,25 @@ A Module to implement Vertical Rhythm in Css generated using clay
 module VerticalRhythm where
 import Clay
 import Control.Monad.State
+import Data.Default
 
--- | Type CSSState used to keep track of the base_font_size and the base_line_height
-data CSSState = (Integer,Integer)
+-- | Type CSSState stores base_font_size, base_line_height, browser_default_font_size 
 
+data CSSState = Base Integer Integer Integer
+
+instance Default CSSState where def = (Base 16 24 16)
 
 -- |  Establishes the baseline for the given CSSState
 
 establish_baseline :: CSSState -> Css
-establish_baseline (x ,y) = baseline x y
+establish_baseline (Base x y) = baseline x y
 
 
 -- | returns baseline Css
-baseline :: Integer -> Integer -> Css
-baseline x y = do 
+baseline :: Integer -> Integer ->Integer -> Css
+baseline x y z= do 
 	--setting base Css
-	-- x is the base_font_size and y is the base_line_height 		     
+	-- x is the base_font_size and y is the base_line_height and z is the browser_default_font_size     
 	html?
 	   fontSize ( pct p)      
 	html ? do
@@ -32,7 +35,7 @@ baseline x y = do
 	   lineHeight (em k)
 	where
 	k=rhythm 1.0 x y 0
-	p= (realToFrac (2*100)) / (realToFrac 16)
+	p= (realToFrac (x*100)) / (realToFrac 16)
 
 
 --  | Calculates rhythm units
@@ -53,6 +56,8 @@ font_size to_size lines from_size base_line_height= do
 			where 
 			k= (realToFrac (to_size*100)) / (realToFrac from_size)
 			s=rhythm lines to_size base_line_height 0 
+
+
 
 
 

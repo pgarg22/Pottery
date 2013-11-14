@@ -1,9 +1,11 @@
 import VerticalRhythm
 import Clay
 import Control.Monad.State
+import Data.Default
 
 main =  putCss k
      
   where
-    k= establish_baseline (5,4)
+    t=def
+    k= establish_baseline t
 
