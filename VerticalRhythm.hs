@@ -10,17 +10,36 @@ module VerticalRhythm where
 import Clay
 import Control.Monad.State
 import Data.Default
+import Data.Maybe
 
 -- | Type CSSState stores base_font_size, base_line_height, browser_default_font_size 
 
-data CSSState = Base Integer Integer Integer Integer Bool Stroke
+data VerRhythm = VerRhythm {
+                     baseFontSize            :: Integer
+                    ,baseLineHeight          :: Integer
+                    ,browserDefaultFontSize  :: Integer
+    		    ,minLinePadding          :: Integer
+                    ,roundToHalfLine         :: Bool
+                    ,defaultRhythmBorderStyle:: Stroke
+    		    }
 
-instance Default CSSState where def = (Base 16 24 16 2 False solid)
+instance Default VerRhythm where def = VerRhythm {
+					 baseFontSize 		 = 16
+                    		        ,baseLineHeight          = 24
+                    			,browserDefaultFontSize  = 16
+    		    			,minLinePadding          = 2
+                    			,roundToHalfLine         = False
+                    			,defaultRhythmBorderStyle= solid
+    		    			}
 
 -- |  Establishes the baseline for the given CSSState
 
-establish_baseline :: CSSState -> Css
-establish_baseline (Base f h b m r bs) = baseline f h b
+establishBaseline :: VerRhythm -> Css
+establishBaseline vr =  baseline f h b
+		        where
+		        f = baseFontSize vr
+		        h = baseLineHeight vr
+			b = browserDefaultFontSize vr
 
 
 -- | returns baseline Css
@@ -46,6 +65,8 @@ rhythm l f h o  = do ((l*realToFrac((h - o))) / realToFrac (f))
 --l is the number of lines, f is the base_font_size, h is the base_line_height and o is the offset
 
 
+
+
 {- 
 
    Adjust a block to have a different font size and line height to maintain the rhythm. 
@@ -54,42 +75,37 @@ rhythm l f h o  = do ((l*realToFrac((h - o))) / realToFrac (f))
    Use $from-size to adjust from a font-size other than the base font-size.
 
 -}
-
--- | returns value inside Maybe Monad and if it is Nothing then the default value passed to this function
-val::Maybe a -> a-> a
-val (Just x) y = x;
-val Nothing y = y;
-
-
-to_font_size:: CSSState -> Integer -> Maybe Double -> Maybe Integer -> Css
-to_font_size (Base f h z m r bs) t l f2 = font_size t l1 f1 h
-				  where
-				  l1 = case l of
-					 Just k -> k
-					 Nothing -> lines_for_font_size t h m r
-				  f1 = case f2 of
-					 Just k-> k
-					 Nothing -> f 
-				 
-
+toFontSize:: VerRhythm -> Integer -> Maybe Double -> Maybe Integer -> Css
+toFontSize vr toSize lines fromSize   =  adjustFontSize toSize l1 f h
+		         		 where
+			 		 h  = baseLineHeight vr
+					 m  = minLinePadding vr
+					 r  = roundToHalfLine vr
+					 l1 = case lines of
+						Just k  -> k
+						Nothing -> linesForFontSize toSize h m r
+					 f = case fromSize of
+						Just k-> k
+						Nothing -> baseFontSize vr 
+						 
 
 -- | returns Css to adjust Fontsize of a element
-font_size :: Integer -> Double -> Integer -> Integer -> Css
-font_size t l f h = do	
-	  -- t is the to_font_size, l is the number of lines, f is the from_font_size, h is the baseline height		
-	  fontSize ( pct k)
-          lineHeight (em s)
+adjustFontSize :: Integer -> Double -> Integer -> Integer -> Css
+adjustFontSize t l f h = do	
+	 	 -- t is the to_font_size, l is the number of lines, f is the from_font_size, h is the baseline height		
+	  	  fontSize ( pct k)
+		  lineHeight (em s)
 			
-	  where 
-	  k= (realToFrac (t*100)) / (realToFrac f)
-	  s=rhythm l t h 0 
+		  where 
+		  k= (realToFrac (t*100)) / (realToFrac f)
+		  s=rhythm l t h 0 
 
 
 
 
 -- | Calculate the minimum multiple of rhythm units needed to contain the font-size.
-lines_for_font_size:: Integer-> Integer -> Integer -> Bool -> Double 
-lines_for_font_size f h m r = 
+linesForFontSize:: Integer-> Integer -> Integer -> Bool -> Double 
+linesForFontSize f h m r = 
 		-- f is the to_fontsize, h is the base line height, m is the minimum line padding and r is the round_to_nearest_half_line
 		if (((l*realToFrac (h))) - realToFrac (f)) < (realToFrac(m*2))     
 		   then if r
@@ -103,125 +119,136 @@ lines_for_font_size f h m r =
 		      else realToFrac(ceiling(realToFrac (f) / realToFrac(h)))
 
 
+
+
 -- | Apply leading whitespace. The property can be margin or padding. By default property is margin
-leader:: CSSState -> Maybe Double-> Maybe Integer -> Maybe String -> Css			
-leader s l f2 property | property == (Just "padding") = padding_leader s l f2
-		       | otherwise                    = margin_leader s l f2 
+leader:: VerRhythm -> Maybe Double-> Maybe Integer -> Maybe String -> Css			
+leader vr lines fSize property | property == (Just "padding") = paddingLeader vr lines fSize
+			       | otherwise                    = marginLeader vr lines fSize 
 
 
 -- |Apply leading whitespace as padding.
-padding_leader:: CSSState -> Maybe Double-> Maybe Integer -> Css
-padding_leader (Base f h b m r bs) l  f2 =  paddingTop (em r)
-					    where
-					    l1 = val l 1.0
-					    f3 = val f2 f
-					    r= rhythm l1 f3 h 0
+paddingLeader:: VerRhythm -> Maybe Double-> Maybe Integer -> Css
+paddingLeader vr lines fSize =  paddingTop (em r)
+				where
+			        l = fromMaybe 1.0 lines
+			        f = fromMaybe (baseFontSize vr) fSize
+			 	r = rhythm l f (baseLineHeight vr) 0
 
 
 
 -- |Apply leading whitespace as margin.
-margin_leader:: CSSState -> Maybe Double-> Maybe Integer -> Css
-margin_leader (Base f h b m r bs) l  f2 =  marginTop (em r)
-					   where
-					   l1 = val l 1.0
-					   f3 = val f2 f
-					   r= rhythm l1 f3 h 0
-
+marginLeader:: VerRhythm -> Maybe Double-> Maybe Integer -> Css
+marginLeader vr lines fSize =   marginTop (em r)
+			    	where
+			        l = fromMaybe 1.0 lines
+			        f = fromMaybe (baseFontSize vr) fSize
+			 	r = rhythm l f (baseLineHeight vr) 0
 
 -- | Apply trailing whitespace. The property can be margin or padding. By default property is margin
-trailer:: CSSState -> Maybe Double-> Maybe Integer -> Maybe String -> Css			
-trailer s l f2 property | property == (Just "padding") = padding_trailer s l f2
-		        | otherwise                    = margin_trailer s l f2 
+trailer:: VerRhythm -> Maybe Double-> Maybe Integer -> Maybe String -> Css			
+trailer vr lines fSize property | property == (Just "padding") = paddingTrailer vr lines fSize
+		       		| otherwise                    = marginTrailer vr lines fSize 
 
 
 -- |Apply trailing whitespace as padding.
-padding_trailer:: CSSState -> Maybe Double-> Maybe Integer -> Css
-padding_trailer (Base f h b m r bs) l  f2 =  paddingBottom (em r)
-					     where
-					     l1 = val l 1.0
-					     f3 = val f2 f
-					     r= rhythm l1 f3 h 0
-
+paddingTrailer:: VerRhythm -> Maybe Double-> Maybe Integer -> Css
+paddingTrailer vr lines fSize = paddingBottom (em r)
+				where
+			        l = fromMaybe 1.0 lines
+			        f = fromMaybe (baseFontSize vr) fSize
+			 	r = rhythm l f (baseLineHeight vr) 0
 
 
 -- |Apply trailing whitespace as margin.
-margin_trailer:: CSSState -> Maybe Double-> Maybe Integer -> Css
-margin_trailer (Base f h b m r bs) l  f2 =  marginBottom (em r)
-					    where
-					    l1 = val l 1.0
-					    f3 = val f2 f
-					    r= rhythm l1 f3 h 0
+marginTrailer:: VerRhythm -> Maybe Double-> Maybe Integer -> Css
+marginTrailer vr lines fSize =  marginBottom (em r)
+				where
+			        l = fromMaybe 1.0 lines
+			        f = fromMaybe (baseFontSize vr) fSize
+			 	r = rhythm l f (baseLineHeight vr) 0 
+
 
 {-  
 	Shorthand function to apply whitespace for top and bottom margins and padding. Takes the number of lines for each property with     		default value 0
 -}  
-property_rhythm:: CSSState -> Maybe Double-> Maybe Double-> Maybe Double-> Maybe Double-> Maybe Integer -> Css
-property_rhythm s ml pl mt pt f= do
-			 
-			margin_leader s (Just ml1) f
-			padding_leader s (Just pl1) f 
-			padding_trailer s (Just pt1) f
-			margin_trailer s (Just mt1) f
+propertyRhythm:: VerRhythm -> Maybe Double-> Maybe Double-> Maybe Double-> Maybe Double-> Maybe Integer -> Css
+propertyRhythm vr ml pl mt pt fSize = do
+			-- ml is marginTop lines, pl is paddingTop lines,mt is marginBottom lines,pt is  paddingBottom lines 
+			marginLeader vr (Just ml1) fSize
+			paddingLeader vr (Just pl1) fSize 
+			paddingTrailer vr (Just pt1) fSize
+			marginTrailer vr (Just mt1) fSize
 			
 			where
-			ml1 = val ml 0
-			pl1 = val pl 0
-			mt1 = val mt 0	
-			pt1 = val pt 0
+			ml1 = fromMaybe 0 ml
+			pl1 = fromMaybe 0 pl
+			mt1 = fromMaybe 0 mt
+			pt1 = fromMaybe 0 pt
 
 
--- |Apply a border & whitespace to any side without destroying the verticalrhythm.The whitespace must be greater than the width of the border.
-apply_side_rhythm_border:: CSSState-> String-> Maybe Integer-> Maybe Double-> Maybe Integer -> Maybe Stroke -> Css
-apply_side_rhythm_border (Base f h b m r bs ) s w l f1 bs1 | s == "Left"    =   do  borderLeft border_style (em w2) red
-							                            paddingLeft (em r) 
+
+
+{- 
+	Apply a border & whitespace to any side without destroying the verticalrhythm.
+	The whitespace must be greater than the width of the border.
+	In the function w is width, l is number of line,fSize is font size, bs is borderstyle, c is the color
+-}
+applySideRhythmBorder:: VerRhythm-> String-> Maybe Integer-> Maybe Double-> Maybe Integer -> Maybe Stroke ->Maybe Color -> Css
+applySideRhythmBorder vr side w l fSize bs c | side == "Left"    =   do  borderLeft borderStyle (em w2) c1
+							                 paddingLeft (em r) 
 						
-						           | s == "Top"     =   do  borderTop border_style (em w2) red
-							                            paddingTop (em r)  
+				      	     | side == "Top"     =   do  borderTop borderStyle (em w2) c1
+							                 paddingTop (em r)  
 						
-						           | s == "Bottom"  =   do  borderBottom border_style (em w2) red
-							                            paddingBottom (em r) 
+				      	     | side == "Bottom"  =   do  borderBottom borderStyle (em w2) c1
+							                 paddingBottom (em r) 
 						
-						           | s == "Right"   =   do  borderRight border_style (em w2) red
-							                            paddingRight (em r)
-						        where
-							w1 = val w 1
-							l1 = val l 1.0
-							fz = val f1 f
-						      	border_style= val bs1 bs
-							r = rhythm l1 fz h w1
-							w2= realToFrac(w1) / realToFrac(fz)
+				             | side == "Right"   =   do  borderRight borderStyle (em w2) c1
+							                 paddingRight (em r)
+				           	where
+					   	w1 	    = fromMaybe 1 w
+					   	l1 	    = fromMaybe 1.0 l
+						c1 	    = fromMaybe red c
+						fz 	    = fromMaybe (baseFontSize vr) fSize
+						borderStyle = fromMaybe (defaultRhythmBorderStyle vr) bs
+						r 	    = rhythm l1 fz (baseLineHeight vr) w1
+						w2	    = realToFrac(w1) / realToFrac(fz)
 					
 
 
--- | Apply borders and whitespace equally to all sides.
-rhythm_borders:: CSSState -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Css
-rhythm_borders (Base f h b m r bs ) w l f1 bs1 = do border border_style (em w3) red
-						    padding (em r) (em r) (em r) (em r)
 
-						   where 
-						   l2 = val l 1.0
-						   f2 = val f1 f
-						   border_style= val bs1 bs
-						   w2 = val w 1	 
-  					           r  = rhythm l2 f2 h w2 
-						   w3 = realToFrac(w2) / realToFrac(f2)
-					
-				
+{-	Apply borders and whitespace equally to all sides.
+	In the function w is width, l is number of line,fSize is font size, bs is borderstyle, c is the color
+-}
+rhythmBorders:: VerRhythm -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Maybe Color -> Css
+rhythmBorders vr w l fSize bs c = do border borderStyle (em w3) c1
+				     padding (em r) (em r) (em r) (em r)
+
+			      	  where 
+			      	  l2 	      = fromMaybe 1.0 l
+			      	  f2 	      = fromMaybe (baseFontSize vr) fSize
+			      	  c1 	      = fromMaybe red c
+			      	  borderStyle = fromMaybe (defaultRhythmBorderStyle vr) bs
+			      	  w2 	      = fromMaybe 1 w	 
+		              	  r  	      = rhythm l2 f2 (baseLineHeight vr) w2 
+			          w3 	      = realToFrac(w2) / realToFrac(f2)
+
 
 
 -- |Apply a leading border.
-leading_border :: CSSState -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Css
-leading_border s (width) (lines)(font_size) (border_style) =   apply_side_rhythm_border s "top" width lines font_size border_style
+leadingBorder :: VerRhythm -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Maybe Color ->Css
+leadingBorder vr width lines fSize borderStyle color = applySideRhythmBorder vr "top" width lines fSize borderStyle color
 
 -- |Apply a trailing border.
-trailing_border :: CSSState -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Css
-trailing_border s (width) (lines)(font_size) (border_style) =  apply_side_rhythm_border s "Bottom" width lines font_size border_style
+trailingBorder :: VerRhythm -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Maybe Color ->Css
+trailingBorder vr width lines fSize borderStyle color = applySideRhythmBorder vr "Bottom" width lines fSize borderStyle color
 
 -- |Apply both leading border and trailing border
-horizontal_border :: CSSState -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Css
-horizontal_border s (width) (lines)(font_size) (border_style) = do leading_border s width lines font_size border_style
-								   trailing_border s width lines font_size border_style
+horizontalBorder :: VerRhythm -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Maybe Color ->Css
+horizontalBorder vr width lines fSize borderStyle color = do leadingBorder vr width lines fSize borderStyle color
+							     trailingBorder vr width lines fSize borderStyle color
 
 -- |Alias for `horizontal_borders
-h_border :: CSSState -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Css
-h_border s width lines font_size border_style = horizontal_border s width lines font_size border_style
+hBorder :: VerRhythm -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Maybe Color ->Css
+hBorder vr width lines fSize borderStyle color = horizontalBorder vr width lines fSize borderStyle color
