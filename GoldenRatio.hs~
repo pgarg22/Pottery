@@ -32,7 +32,7 @@ grFontSize contentWidth = do
 	where
 	k   = calcFontSize contentWidth
 	j   = realToFrac(contentWidth)
-	yoo = (sqrt(j)) / phi                              -- line 
+	yoo = (sqrt(j)) / phi                              -- line Height
 	p   = (realToFrac((100*k)) / (realToFrac(k))) 
 	c   = Prelude.round ((realToFrac(k)) / yoo)
 
