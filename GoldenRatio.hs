@@ -8,12 +8,10 @@ A Module to implement Golden Ratio Typography in Css generated using clay
 
 module GoldenRatio where
 import Clay
-import Control.Monad.State
-import Data.Default
-import Data.Maybe
+
 
 phi = (1.0 + sqrt(5)) / 2.0 ::Double     -- 1.61803398874989 or "The Golden Ratio"
-yoo = 1.0 / (2.0 * phi) ::Double
+xoo = 1.0 / (2.0 * phi) ::Double
 
 --  | Calculated font size based on contentWidth.
 calcFontSize :: Integer -> Integer
@@ -29,12 +27,14 @@ grFontSize contentWidth = do
 	
 	fontSize(px k)
 	fontSize (em p)
-	lineHeight (em c)
+	lineHeight (px c)
 
 	where
-	k = calcFontSize contentWidth
-	p = (realToFrac((100*k)) / (realToFrac(k))) 
-	c = (realToFrac(k)) / yoo
+	k   = calcFontSize contentWidth
+	j   = realToFrac(contentWidth)
+	yoo = (sqrt(j)) / phi                              -- line Height
+	p   = (realToFrac((100*k)) / (realToFrac(k))) 
+	c   = Prelude.round ((realToFrac(k)) / yoo)
 
 
 
@@ -53,13 +53,15 @@ grTitleSize contentWidth = do
 
 	fontSize(px k)
 	fontSize (em p)
-	lineHeight (em c)
+	lineHeight (px c)
 
 	where
 	k = calcTitleSize contentWidth
 	f = calcFontSize contentWidth
 	p = (realToFrac((100*k)) / (realToFrac(f))) 
-	c = (realToFrac(k)) / yoo
+	j   = realToFrac(contentWidth)
+	yoo = (sqrt(j)) / phi      
+	c = Prelude.round ((realToFrac(k)) / yoo)
 
 
 
@@ -77,13 +79,15 @@ grHeadlineSize:: Integer -> Css
 grHeadlineSize contentWidth = do
 	fontSize(px k)
 	fontSize (em p)
-	lineHeight (em c)
+	lineHeight (px c)
 
 	where
 	k = calcHeadLineSize contentWidth
 	f = calcFontSize contentWidth
 	p = (realToFrac((100*k)) / (realToFrac(f))) 
-	c = (realToFrac(k)) / yoo
+	j   = realToFrac(contentWidth)
+	yoo = (sqrt(j)) / phi      
+	c = Prelude.round ((realToFrac(k)) / yoo)
 
 
 
@@ -103,13 +107,15 @@ grSubHeadLineSize contentWidth = do
 
 	fontSize(px k)
 	fontSize (em p)
-	lineHeight (em c)
+	lineHeight (px c)
 
 	where
 	k = calcSubHeadLineSize contentWidth
 	f = calcFontSize contentWidth
-	p = (realToFrac((100*k)) / (realToFrac(f))) 
-	c = (realToFrac(k)) / yoo
+	p = (realToFrac((k)) / (realToFrac(f)))
+	j   = realToFrac(contentWidth)
+	yoo = (sqrt(j)) / phi       
+	c = Prelude.round ((realToFrac(k)) / yoo)
 
 
 --  | Calculated secondary text size based on contentWidth.
@@ -127,13 +133,15 @@ grSecondaryText contentWidth = do
 
 	fontSize(px k)
 	fontSize (em p)
-	lineHeight (em c)
+	lineHeight (px c)
 
 	where
 	k = calcSecondaryText contentWidth
 	f = calcFontSize contentWidth
 	p = (realToFrac((100*k)) / (realToFrac(f))) 
-	c = (realToFrac(k)) / yoo
+	j   = realToFrac(contentWidth)
+	yoo = (sqrt(j)) / phi      
+	c = Prelude.round ((realToFrac(k)) / yoo)
 
 
 
@@ -146,7 +154,6 @@ calcBaseLineHeight contentWidth = k
 		     		  foobar= (sqrt(j)) / phi
 		     		  h 	= (realToFrac(f) * phi) ^ 2
 		     		  p 	= ((realToFrac(contentWidth)) / h )
-				  xoo 	= sqrt(j) / phi
 		     		  foo	= realToFrac(f) * (phi - xoo * (1.0 - p))
 		     		  k	= foo / foobar
 
@@ -155,10 +162,10 @@ calcBaseLineHeight contentWidth = k
 grBaseLineHeight::  Integer -> Css
 grBaseLineHeight contentWidth = do
 
-	lineHeight (em c)
+	lineHeight (px c)
 
 	where
-	c = calcBaseLineHeight contentWidth
+	c = Prelude.round (calcBaseLineHeight contentWidth)
 
 
 
@@ -174,9 +181,9 @@ calcCustomLineHeight contentWidth target =   foo
 
 -- | returns Css for Calculated Golden Ratio line-height based on contentWidth.				
 grCustomLineHeight:: Integer -> Integer-> Css
-grCustomLineHeight contentWidth target = lineHeight (em c)
+grCustomLineHeight contentWidth target = lineHeight (px c)
 		     	    		 where
-		     	    		 c = calcCustomLineHeight contentWidth target
+		     	    		 c = Prelude.round (calcCustomLineHeight contentWidth target)
 
 
 
