@@ -61,7 +61,7 @@ baseline x y z= do
 
 --  | Calculates rhythm units
 rhythm :: Double -> Integer-> Integer -> Integer -> Double
-rhythm l f h o  = do ((l*realToFrac((h - o))) / realToFrac (f))
+rhythm l f h o  = ((l*realToFrac((h - o))) / realToFrac (f))
 --l is the number of lines, f is the base_font_size, h is the base_line_height and o is the offset
 
 
