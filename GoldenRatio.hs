@@ -13,10 +13,10 @@ import Data.Default
 import Data.Maybe
 
 contentWidth= 2.2 ::Double
-phi = 4.4 ::Double
-yoo = 4.5 ::Double
-zoo = 4.5 ::Double
-xoo = 4.5 ::Double
+phi = (1.0 + sqrt(5)) / 2.0 ::Double     -- 1.61803398874989 or "The Golden Ratio"
+yoo = 1.0 / (2.0 * phi) ::Double
+zoo = sqrt(contentWidth) / phi ::Double
+xoo = phi - xoo * (1.0 - (contentWidth / yoo)) ::Double
 
 
 calcFontSize:: Integer
