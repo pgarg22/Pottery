@@ -19,11 +19,15 @@ zoo = sqrt(contentWidth) / phi ::Double
 xoo = phi - xoo * (1.0 - (contentWidth / yoo)) ::Double
 
 
+
+--  | Calculated font size based on contentWidth.
 calcFontSize:: Integer
 calcFontSize = Prelude.round k
 		where
 		k= sqrt(contentWidth/phi) 
 
+
+-- | returns Css for Calculated font size based on contentWidth.
 grFontSize:: Css
 grFontSize = do
 	
@@ -36,6 +40,8 @@ grFontSize = do
 	p = (realToFrac((100*k)) / (realToFrac(k))) 
 	c = (realToFrac(k)) / yoo
 
+
+--  | Calculated title size based on contentWidth.
 calcTitleSize:: Integer
 calcTitleSize = Prelude.round k
 		where
@@ -43,6 +49,7 @@ calcTitleSize = Prelude.round k
 		p= phi ^ 2
 		k= realToFrac(f) * p 
 
+-- | returns Css for Calculated title size based on contentWidth.
 grTitleSize::  Css
 grTitleSize = do
 
@@ -56,7 +63,7 @@ grTitleSize = do
 	p = (realToFrac((100*k)) / (realToFrac(f))) 
 	c = (realToFrac(k)) / yoo
 
-
+--  | Calculated Headline Size based on contentWidth.
 calcHeadLineSize:: Integer
 calcHeadLineSize= Prelude.round k
 		  where
@@ -65,6 +72,7 @@ calcHeadLineSize= Prelude.round k
 		  k= realToFrac(f) * p 
 
  
+-- | returns Css for Calculated Headline Size based on contentWidth.
 grHeadlineSize:: Css
 grHeadlineSize = do
 	fontSize(px k)
@@ -78,7 +86,7 @@ grHeadlineSize = do
 	c = (realToFrac(k)) / yoo
 
  
- 
+--  | Calculated sub-Headline Size based on contentWidth. 
 calcSubHeadLineSize:: Integer
 calcSubHeadLineSize =   Prelude.round k
 			where
@@ -86,6 +94,8 @@ calcSubHeadLineSize =   Prelude.round k
 			p= sqrt(phi)
 			k= realToFrac(f) * p 
 
+
+-- | returns Css for sub-Headline Size based on contentWidth.
 grSubHeadLineSize::  Css
 grSubHeadLineSize = do
 
@@ -99,7 +109,7 @@ grSubHeadLineSize = do
 	p = (realToFrac((100*k)) / (realToFrac(f))) 
 	c = (realToFrac(k)) / yoo
 
-
+--  | Calculated secondary text size based on contentWidth.
 calcSecondaryText::Integer
 calcSecondaryText = Prelude.round k
 		    where
@@ -107,6 +117,8 @@ calcSecondaryText = Prelude.round k
 		    p= sqrt(phi)
 		    k= realToFrac(f) * ( (1.0) / p)
 
+
+-- | returns Css for Calculated secondary text  size based on contentWidth.
 grSecondaryText::  Css
 grSecondaryText = do
 
@@ -121,7 +133,7 @@ grSecondaryText = do
 	c = (realToFrac(k)) / yoo
 
 
-
+--  | Calculated default line-height based on contentWidth.
 calcBaseLineHeight::Double
 calcBaseLineHeight = k
 		     where
@@ -132,6 +144,8 @@ calcBaseLineHeight = k
 		     foo= realToFrac(f) * (phi - xoo * (1.0 - p))
 		     k= foo / foobar
 
+
+-- | returns Css for Calculated default line-height based on contentWidth.
 grBaseLineHeight::  Css
 grBaseLineHeight = do
 
@@ -141,13 +155,15 @@ grBaseLineHeight = do
 	c = calcBaseLineHeight
 
 
-
+--  | Calculated a Golden Ratio line-height based on contentWidth.
 calcCustomLineHeight:: Integer ->Double
 calcCustomLineHeight target =   foo
 				where 
 				foobar= (sqrt(contentWidth)) / phi
 				foo = (realToFrac(target)) / foobar
-				
+
+
+-- | returns Css for Calculated Golden Ratio line-height based on contentWidth.				
 grCustomLineHeight::Integer-> Css
 grCustomLineHeight target = lineHeight (em c)
 		     	    where
