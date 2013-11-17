@@ -6,7 +6,7 @@ type CSSState = (Integer,Integer)
 
 type MyStateMonad  = State CSSState 
 
-establish_baseline :: MyStateMonad Css
+establish_baseline :: MyStateMonad Css Css
 establish_baseline = state (\st ->
 				let (x , y) = st 
 				    k=rhythm 1.0 x 0

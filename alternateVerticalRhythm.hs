@@ -1,4 +1,4 @@
-module Module1 where
+module VerticalRhythm2 where
 import Control.Monad.Reader
 import Clay
 import Data.Function
