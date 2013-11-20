@@ -6,7 +6,7 @@ use. You can also import the module for the individual hash function.
 -}
 
 
-module goldenRatioFunctions
+module GoldenRatio
 	( 
 	  grTitleSize : Returns CSS of title size based on content width. 
 	, grHeadlineSize : Returns CSS of headline size based on content width. 
@@ -17,7 +17,4 @@ module goldenRatioFunctions
 	, grCustomLineheight	) where
 
 import GoldenRatioFunctions
-import Clay
-import Control.Monad.State
-import Data.Default
-import Data.Maybe
+

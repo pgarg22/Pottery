@@ -6,7 +6,7 @@ A Module to implement Vertical Rhythm in Css generated using clay
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module VerticalRhythm where
+module VerticalRhythmFunctions where
 import Clay
 import Control.Monad.State
 import Data.Default

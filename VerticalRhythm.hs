@@ -6,7 +6,7 @@ use. You can also import the module for the individual hash function.
 -}
 
 
-module verticalRhythmFunctions
+module VerticalRhythm
 	( 
 	  establishBaseline
 	, baseline
@@ -30,7 +30,4 @@ module verticalRhythmFunctions
 	) where
 
 import VerticalRhythmFunctions
-import Clay
-import Control.Monad.State
-import Data.Default
-import Data.Maybe
+
