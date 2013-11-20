@@ -3,8 +3,11 @@ import Clay
 import Control.Monad.State
 import Data.Default
 
-main =  putCss k
+main =  do  
+	writeFile "ab.txt" ("a")
+	putCss k
      
   where
     t=def
     k= establishBaseline t
+    b = render k
