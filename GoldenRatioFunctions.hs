@@ -77,8 +77,8 @@ calcHeadLineSize contentWidth = Prelude.round k
 {-  USAGE : grHeadLineSize contentWidth. 
     This returns the css for the calculated Headline Size based on Contentwidth. 
 -}
-grHeadlineSize:: Integer -> Css
-grHeadlineSize contentWidth = do
+grHeadLineSize:: Integer -> Css
+grHeadLineSize contentWidth = do
 			      fontSize(px k)
 			      fontSize (em p)
 			      lineHeight (px c)

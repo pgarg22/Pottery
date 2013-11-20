@@ -9,16 +9,12 @@ use. You can also import the module for the individual hash function.
 module VerticalRhythm
 	( 
 	  establishBaseline
-	, baseline
-	, rhythm
 	, toFontSize
-	, adjustFontSize
-	, linesForFontSize
 	, paddingLeader
 	, leader
 	, marginLeader
 	, trailer
-	, paddingtrailer
+	, paddingTrailer
 	, marginTrailer
 	, propertyRhythm
 	, applySideRhythmBorder
