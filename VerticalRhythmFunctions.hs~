@@ -1,0 +1,374 @@
+{-
+
+A Module to implement Vertical Rhythm in Css generated using clay
+
+-}
+
+{-# LANGUAGE OverloadedStrings #-}
+
+module VerticalRhythmFunctions where
+import Clay
+import Control.Monad.State
+import Data.Default
+import Data.Maybe
+
+-- | Type CSSState stores base_font_size, base_line_height, browser_default_font_size 
+
+data VerRhythm = VerRhythm { 
+          baseFontSize :: Integer
+        , baseLineHeight :: Integer
+        , browserDefaultFontSize :: Integer
+        , minLinePadding :: Integer
+        , roundToHalfLine :: Bool
+        , defaultRhythmBorderStyle :: Stroke
+        }
+
+instance Default VerRhythm where def = VerRhythm { 
+          baseFontSize = 16
+        , baseLineHeight = 24 
+        , browserDefaultFontSize = 16
+        , minLinePadding = 2
+        , roundToHalfLine = False
+        , defaultRhythmBorderStyle = solid
+        }
+
+{-  
+    USAGE : establishBaseline VerRhythm 
+	
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    This returns the CSS for the baseline 
+-}
+establishBaseline :: VerRhythm -> Css
+establishBaseline vr =  baseline f h b
+	where
+	f = baseFontSize vr
+	h = baseLineHeight vr
+	b = browserDefaultFontSize vr
+
+
+-- | returns baseline Css
+baseline :: Integer -> Integer ->Integer -> Css
+baseline x y z= do 
+	--setting base Css
+	-- x is the base_font_size and y is the base_line_height and z is the browser_default_font_size     
+	-- IE 6 refuses to resize fonts set in pixels and it weirdly resizes fonts 
+	--whose root is set in ems. So we set the root font size in percentages of the default font size.
+	html|>body?
+		fontSize ( pct p)      
+	html ? do
+		fontSize (px x)
+		lineHeight (em k)
+			where
+			k = rhythm 1.0 x y 0
+			p= (realToFrac (x*100)) / (realToFrac 16)
+
+
+--  | Calculates rhythm units
+rhythm :: Double -> Integer-> Integer -> Integer -> Double
+rhythm l f h o  = ((l*realToFrac((h - o))) / realToFrac (f))
+--l is the number of lines, f is the base_font_size, h is the base_line_height and o is the offset
+
+
+
+
+{-  
+    USAGE :  toFontSize VerRhythm toSize lines fromSize
+  
+   verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+   l specifies how many multiples of the baseline rhythm each line of this font should use up. It does not have to be an integer, 
+   but it defaults to the smallest integer that is large enough to fit the font.
+   Use fromSize to adjust from a font-size other than the base font-size.
+   toSize is the targer font size 
+
+   Adjust a block to have a different font size and line height to maintain the rhythm. 
+   
+
+-}
+toFontSize:: VerRhythm -> Integer -> Maybe Double -> Maybe Integer -> Css
+toFontSize vr toSize lines fromSize   =  adjustFontSize toSize l1 f h
+	where
+	h  = baseLineHeight vr
+	m  = minLinePadding vr
+	r  = roundToHalfLine vr
+	l1 = case lines of
+		Just k -> k
+		Nothing -> linesForFontSize toSize h m r
+	f = case fromSize of
+		Just k -> k
+		Nothing -> baseFontSize vr 
+						 
+
+-- | returns Css to adjust Fontsize of a element
+adjustFontSize :: Integer -> Double -> Integer -> Integer -> Css
+adjustFontSize t l f h = do	
+-- t is the to_font_size, l is the number of lines, f is the from_font_size, h is the baseline height		
+	fontSize ( em k)
+	lineHeight (em s)		
+	where 
+	k= (realToFrac (t)) / (realToFrac f)
+	
+	s=rhythm l t h 0 
+
+
+
+
+-- | Calculate the minimum multiple of rhythm units needed to contain the font-size.
+linesForFontSize:: Integer-> Integer -> Integer -> Bool -> Double 
+linesForFontSize f h m r = 
+-- f is the to_fontsize, h is the base line height, m is the minimum line padding and r is the round_to_nearest_half_line
+	if (((l*realToFrac (h))) - realToFrac (f)) < (realToFrac(m*2))     
+	   then if r
+    	           then (l + 0.5)
+	           else (l + 1.0)
+	   else l
+	        where
+		l = if r 
+		       then realToFrac(ceiling((realToFrac (f*2) / realToFrac (h))/2)) 
+		       else realToFrac(ceiling(realToFrac (f) / realToFrac(h)))
+
+
+
+{-  
+    USAGE :  leader verRhythm lines fSize property
+    
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    line is Maybe type which takes in number of lines of verticalRhythm. If you give nothing it uses 1.0
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    property is either margin or trailer. If provided nothing takes as margin as the default type
+    Apply leading whitespace. The property can be margin or padding. By default property is margin
+
+-}
+leader:: VerRhythm -> Maybe Double-> Maybe Integer -> Maybe String -> Css			
+leader vr lines fSize property | property == (Just "padding") = paddingLeader vr lines fSize
+			       | otherwise                    = marginLeader vr lines fSize 
+
+
+
+{-  
+    USAGE :  paddingLeader verRhythm lines fSize property
+    
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    line is Maybe type which takes in number of lines of verticalRhythm. If you give nothing it uses 1.0
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    Apply leading whitespace as padding.
+-}
+paddingLeader:: VerRhythm -> Maybe Double-> Maybe Integer -> Css
+paddingLeader vr lines fSize =  paddingTop (em r)
+	where
+	l = fromMaybe 1.0 lines
+	f = fromMaybe (baseFontSize vr) fSize
+	r = rhythm l f (baseLineHeight vr) 0
+
+
+{-  
+    USAGE :  marginLeader verRhythm lines fSize property
+    
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    line is Maybe type which takes in number of lines of verticalRhythm. If you give nothing it uses 1.0
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    Apply leading whitespace as margin.
+-}
+marginLeader:: VerRhythm -> Maybe Double-> Maybe Integer -> Css
+marginLeader vr lines fSize =   marginTop (em r)
+			    	where
+			        l = fromMaybe 1.0 lines
+			        f = fromMaybe (baseFontSize vr) fSize
+			 	r = rhythm l f (baseLineHeight vr) 0
+
+{-  
+    USAGE :  trailer verRhythm lines fSize property
+    
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    line is Maybe type which takes in number of lines of verticalRhythm. If you give nothing it uses 1.0
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    property is either margin or trailer. If provided nothing takes as margin as the default type
+    Apply trailing whitespace. The property can be margin or padding. By default property is margin
+
+-}
+trailer:: VerRhythm -> Maybe Double-> Maybe Integer -> Maybe String -> Css			
+trailer vr lines fSize property | property == (Just "padding") = paddingTrailer vr lines fSize
+		       		| otherwise                    = marginTrailer vr lines fSize 
+
+
+{-  
+    USAGE :  paddingTrailer verRhythm lines fSize property
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    line is Maybe type which takes in number of lines of verticalRhythm. If you give nothing it uses 1.0
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    Apply trailing whitespace as padding.
+-}
+paddingTrailer:: VerRhythm -> Maybe Double-> Maybe Integer -> Css
+paddingTrailer vr lines fSize = paddingBottom (em r)
+				where
+			        l = fromMaybe 1.0 lines
+			        f = fromMaybe (baseFontSize vr) fSize
+			 	r = rhythm l f (baseLineHeight vr) 0
+{-  
+    USAGE :  marginTrailer verRhythm lines fSize property
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    line is Maybe type which takes in number of lines of verticalRhythm. If you give nothing it uses 1.0
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    Apply leading whitespace as padding.
+-}
+
+marginTrailer:: VerRhythm -> Maybe Double-> Maybe Integer -> Css
+marginTrailer vr lines fSize =  marginBottom (em r)
+				where
+			        l = fromMaybe 1.0 lines
+			        f = fromMaybe (baseFontSize vr) fSize
+			 	r = rhythm l f (baseLineHeight vr) 0 
+
+
+{-  
+
+
+    USAGE :  propertyRhythm verRhythm ml pl mt pt fSize
+
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    ml- the number of lines for leading margin whitespace with default value 0
+    pl- the number of lines for leading padding whitespace with default value 0
+    mt- the number of lines for trailing margin whitespace with default value 0
+    pt- the number of lines for trailing padding whitespace with default value 0
+    
+    Shorthand function to apply whitespace for top and bottom margins and padding.
+-}  
+propertyRhythm:: VerRhythm -> Maybe Double-> Maybe Double-> Maybe Double-> Maybe Double-> Maybe Integer -> Css
+propertyRhythm vr ml pl mt pt fSize = do
+			-- ml is marginTop lines, pl is paddingTop lines,mt is marginBottom lines,pt is  paddingBottom lines 
+			marginLeader vr (Just ml1) fSize
+			paddingLeader vr (Just pl1) fSize 
+			paddingTrailer vr (Just pt1) fSize
+			marginTrailer vr (Just mt1) fSize
+				where
+				ml1 = fromMaybe 0 ml
+				pl1 = fromMaybe 0 pl
+				mt1 = fromMaybe 0 mt
+				pt1 = fromMaybe 0 pt
+
+
+{- 
+
+    USAGE :  applySideRhythmBorder verRhythm side w l fSize bs c
+
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    bs is the border style with the default value if send nothing in the VerRhythm data type
+    l- the number of lines for border with default value 1.0
+    s- it is the side on which border is to be applied
+    w is width and if send nothing has a default value of 1.0
+    c is the color and if send nothing uses default value of red
+
+    Apply a border & whitespace to any side without destroying the verticalrhythm.
+    The whitespace must be greater than the width of the border.
+-}
+
+applySideRhythmBorder:: VerRhythm-> String-> Maybe Integer-> Maybe Double-> Maybe Integer -> Maybe Stroke ->Maybe Color -> Css
+applySideRhythmBorder vr side w l fSize bs c | side == "Left" = do borderLeft borderStyle (em w2) c1
+							           paddingLeft (em r) 
+						
+				      	     | side == "Top" = do borderTop borderStyle (em w2) c1
+							          paddingTop (em r)  
+						
+				      	     | side == "Bottom" = do borderBottom borderStyle (em w2) c1
+							             paddingBottom (em r) 
+						
+				             | side == "Right" = do borderRight borderStyle (em w2) c1
+							            paddingRight (em r)
+						     where
+						     w1 = fromMaybe 1 w
+						     l1 = fromMaybe 1.0 l
+						     c1 = fromMaybe red c
+						     fz = fromMaybe (baseFontSize vr) fSize
+						     borderStyle = fromMaybe (defaultRhythmBorderStyle vr) bs
+						     r = rhythm l1 fz (baseLineHeight vr) w1
+						     w2 = realToFrac(w1) / realToFrac(fz)
+					
+
+
+{- 
+
+    USAGE :  rhythmBorders verRhythm w l fSize bs c
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    bs is the border style with the default value if send nothing in the VerRhythm data type
+    l- the number of lines for border with default value 1.0
+    s- it is the side on which border is to be applied
+    w is width and if send nothing has a default value of 1.0
+    c is the color and if send nothing uses default value of red
+
+    Apply borders and whitespace equally to all sides.
+    In the function w is width, l is number of line,fSize is font size, bs is borderstyle, c is the color
+-}
+rhythmBorders:: VerRhythm -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Maybe Color -> Css
+rhythmBorders vr w l fSize bs c = do border borderStyle (em w3) c1
+				     padding (em r) (em r) (em r) (em r)
+				      	  where 
+				      	  l2 = fromMaybe 1.0 l
+				      	  f2 = fromMaybe (baseFontSize vr) fSize
+				      	  c1 = fromMaybe red c
+				      	  borderStyle = fromMaybe (defaultRhythmBorderStyle vr) bs
+				      	  w2 = fromMaybe 1 w	 
+				      	  r = rhythm l2 f2 (baseLineHeight vr) w2 
+					  w3 = realToFrac(w2) / realToFrac(f2)
+
+
+{- 
+
+    USAGE :  leadingBorder verRhythm width lines fSize borderStyle color
+
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    borderStyle is the border style with the default value if send nothing in the VerRhythm data type
+    l- the number of lines for border with default value 1.0
+    s- it is the side on which border is to be applied
+    width is width and if send nothing has a default value of 1.0
+    color is the color and if send nothing uses default value of red
+    
+    Apply a leading border.
+
+-}
+leadingBorder :: VerRhythm -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Maybe Color ->Css
+leadingBorder vr width lines fSize borderStyle color = applySideRhythmBorder vr "top" width lines fSize borderStyle color
+
+
+{- 
+
+    USAGE :  trailingBorder verRhythm width lines fSize borderStyle color
+
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    borderStyle is the border style with the default value if send nothing in the VerRhythm data type
+    l- the number of lines for border with default value 1.0
+    s- it is the side on which border is to be applied
+    width is width and if send nothing has a default value of 1.0
+    color is the color and if send nothing uses default value of red
+    
+    Apply a trailing border.
+
+-}
+trailingBorder :: VerRhythm -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Maybe Color ->Css
+trailingBorder vr width lines fSize borderStyle color = applySideRhythmBorder vr "Bottom" width lines fSize borderStyle color
+
+
+{- 
+
+    USAGE :  horizontalBorder verRhythm width lines fSize borderStyle color
+
+    verRhythm is the Vertical Rhythm State which gives the base variables as defined at the top of the module
+    fSize is the Mayhe type which is the font sie and if you give nothing it is the default base font size
+    borderStyle is the border style with the default value if send nothing in the VerRhythm data type
+    l- the number of lines for border with default value 1.0
+    s- it is the side on which border is to be applied
+    width is width and if send nothing has a default value of 1.0
+    color is the color and if send nothing uses default value of red
+    
+   Apply both leading border and trailing border
+-}
+horizontalBorder :: VerRhythm -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Maybe Color ->Css
+horizontalBorder vr width lines fSize borderStyle color = do leadingBorder vr width lines fSize borderStyle color
+							     trailingBorder vr width lines fSize borderStyle color
+
+-- |Alias for `horizontal_borders
+hBorder :: VerRhythm -> Maybe Integer -> Maybe Double -> Maybe Integer -> Maybe Stroke -> Maybe Color ->Css
+hBorder vr width lines fSize borderStyle color = horizontalBorder vr width lines fSize borderStyle color

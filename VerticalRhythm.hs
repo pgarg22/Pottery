@@ -8,7 +8,8 @@ use. You can also import the module for the individual hash function.
 
 module VerticalRhythm
 	( 
-	  establishBaseline
+	  VerRhythm(..)
+	, establishBaseline
 	, toFontSize
 	, paddingLeader
 	, leader

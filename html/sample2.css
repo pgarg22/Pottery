@@ -1,0 +1,23 @@
+html
+{
+  font-size   : 3px;
+  font-size   : 1em;
+  line-height : 1.61803em;
+}
+
+h1
+{
+  font-size   : 5px;
+  font-size   : 1.66666em;
+  line-height : 2.69672em;
+}
+
+h2
+{
+  font-size   : 4px;
+  font-size   : 1.33333em;
+  line-height : 2.15737em;
+}
+
+
+/* Generated with Clay, http://fvisser.nl/clay */

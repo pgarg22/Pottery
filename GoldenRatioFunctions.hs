@@ -29,13 +29,13 @@ grFontSize:: Integer -> Css
 grFontSize contentWidth = do	
 			  fontSize(px k)
 			  fontSize (em p)
-			  lineHeight (px c)
+			  lineHeight (em phi)
 	where
 	k = calcFontSize contentWidth
 	j = realToFrac(contentWidth)
 	yoo = (sqrt(j)) / phi                              -- line Height
-	p = (realToFrac((100*k)) / (realToFrac(k))) 
-	c = Prelude.round ((realToFrac(k)) / yoo)
+	p = (realToFrac((k)) / (realToFrac(k)))
+        s = (realToFrac(k)) * phi
 
 
 
@@ -56,14 +56,15 @@ grTitleSize:: Integer -> Css
 grTitleSize contentWidth = do
 			   fontSize(px k)
 			   fontSize (em p)
-	                   lineHeight (px c)
+	                   lineHeight (em c)
 	where
 	k = calcTitleSize contentWidth
 	f = calcFontSize contentWidth
-	p = (realToFrac((100*k)) / (realToFrac(f))) 
+	p = (realToFrac((k)) / (realToFrac(f))) 
 	j = realToFrac(contentWidth)
 	yoo = (sqrt(j)) / phi      
-	c = Prelude.round ((realToFrac(k)) / yoo)
+	--c = Prelude.round ((realToFrac(k)) / yoo)
+        c = (realToFrac(k)* phi)/(realToFrac(f))
 
 
 calcHeadLineSize:: Integer -> Integer
@@ -71,7 +72,7 @@ calcHeadLineSize contentWidth = Prelude.round k
 	where
 	f = calcFontSize contentWidth 
 	p = phi ^ 1
-	k = realToFrac(f) * p 
+	k = realToFrac(f) * p
 
  
 {-  USAGE : grHeadLineSize contentWidth. 
@@ -81,14 +82,15 @@ grHeadLineSize:: Integer -> Css
 grHeadLineSize contentWidth = do
 			      fontSize(px k)
 			      fontSize (em p)
-			      lineHeight (px c)
+			      lineHeight (em c)
 	where
 	k = calcHeadLineSize contentWidth
 	f = calcFontSize contentWidth
-	p = (realToFrac((100*k)) / (realToFrac(f))) 
+	p = (realToFrac((k)) / (realToFrac(f))) 
 	j = realToFrac(contentWidth)
-	yoo = (sqrt(j)) / phi      
-	c = Prelude.round ((realToFrac(k)) / yoo)
+	yoo = (sqrt(j)) / phi
+        c = (realToFrac(k)* phi)/(realToFrac(f))      
+	--c = Prelude.round ((realToFrac(k)) / yoo)
 
  
 calcSubHeadLineSize:: Integer -> Integer
@@ -106,15 +108,16 @@ grSubHeadLineSize::  Integer -> Css
 grSubHeadLineSize contentWidth = do
 				 fontSize(px k)
 				 fontSize (em p)
-				 lineHeight (px c)
+				 lineHeight (em c)
 
 	where
 	k = calcSubHeadLineSize contentWidth
 	f = calcFontSize contentWidth
 	p = (realToFrac((k)) / (realToFrac(f)))
 	j = realToFrac(contentWidth)
-	yoo = (sqrt(j)) / phi       
-	c = Prelude.round ((realToFrac(k)) / yoo)
+	yoo = (sqrt(j)) / phi
+        c = (realToFrac(k)* phi)/(realToFrac(f))       
+	--c = Prelude.round ((realToFrac(k)) / yoo)
 
 
 calcSecondaryText:: Integer -> Integer
@@ -132,14 +135,15 @@ grSecondaryText:: Integer -> Css
 grSecondaryText contentWidth = do
 			       fontSize(px k)
 			       fontSize (em p)
-			       lineHeight (px c)
+			       lineHeight (em c)
 	where
 	k = calcSecondaryText contentWidth
 	f = calcFontSize contentWidth
-	p = (realToFrac((100*k)) / (realToFrac(f))) 
+	p = (realToFrac((k)) / (realToFrac(f))) 
 	j = realToFrac(contentWidth)
-	yoo = (sqrt(j)) / phi      
-	c = Prelude.round ((realToFrac(k)) / yoo)
+	yoo = (sqrt(j)) / phi
+	c = (realToFrac(k)* phi)/(realToFrac(f))      
+	--c = Prelude.round ((realToFrac(k)) / yoo)
 
 
 calcBaseLineHeight:: Integer -> Double
@@ -150,7 +154,7 @@ calcBaseLineHeight contentWidth = k
 	foobar = (sqrt(j)) / phi
 	h = (realToFrac(f) * phi) ^ 2
 	p = ((realToFrac(contentWidth)) / h )
-	foo = realToFrac(f) * (phi - xoo * (1.0 - p))
+	foo = realToFrac(f) * (phi - (xoo * (1.0 - p)))
 	k = foo / foobar
 
 {-  USAGE : grBaseLineHeight contentWidth. 

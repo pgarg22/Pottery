@@ -53,14 +53,14 @@ baseline x y z= do
 	-- x is the base_font_size and y is the base_line_height and z is the browser_default_font_size     
 	-- IE 6 refuses to resize fonts set in pixels and it weirdly resizes fonts 
 	--whose root is set in ems. So we set the root font size in percentages of the default font size.
-	html?
-		fontSize ( pct p)      
+	html|>body?
+		fontSize ( px x)      
 	html ? do
-		fontSize (px x)
+		fontSize (em p)
 		lineHeight (em k)
 			where
 			k = rhythm 1.0 x y 0
-			p= (realToFrac (x*100)) / (realToFrac 16)
+			p= (realToFrac (x)) / (realToFrac 16)
 
 
 --  | Calculates rhythm units
@@ -102,10 +102,11 @@ toFontSize vr toSize lines fromSize   =  adjustFontSize toSize l1 f h
 adjustFontSize :: Integer -> Double -> Integer -> Integer -> Css
 adjustFontSize t l f h = do	
 -- t is the to_font_size, l is the number of lines, f is the from_font_size, h is the baseline height		
-	fontSize ( pct k)
+	fontSize ( em k)
 	lineHeight (em s)		
 	where 
-	k= (realToFrac (t*100)) / (realToFrac f)
+	k= (realToFrac (t)) / (realToFrac f)
+	
 	s=rhythm l t h 0 
 
 

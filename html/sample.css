@@ -1,0 +1,33 @@
+html > body
+{
+  font-size : 20px;
+}
+
+html
+{
+  font-size   : 1.25em;
+  line-height : 1.19999em;
+}
+
+p.p1
+{
+  margin-top : 1.19999em;
+}
+
+p.p2
+{
+  font-size   : 1.39999em;
+  line-height : 1.71428em;
+  border      : solid 0.25em rgb(0,0,0);
+  padding     : 0.94999em 0.94999em 0.94999em 0.94999em;
+}
+
+p.p3
+{
+  padding-bottom : 1.19999em;
+  border-bottom  : solid 0.2em rgb(0,0,0);
+  padding-bottom : 1em;
+}
+
+
+/* Generated with Clay, http://fvisser.nl/clay */
